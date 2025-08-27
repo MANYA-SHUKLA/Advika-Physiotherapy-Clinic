@@ -1,7 +1,49 @@
 "use client";
 import { Facebook, Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react";
+import { useState } from "react";
 
 export default function Footer() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!email) {
+      setMessage("Please enter your email address");
+      setStatus("error");
+      return;
+    }
+
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStatus("success");
+        setMessage("Thank you for subscribing!");
+        setEmail("");
+      } else {
+        setStatus("error");
+        setMessage(data.error || "Something went wrong");
+      }
+    } catch (error) {
+      setStatus("error");
+      setMessage("Failed to subscribe. Please try again.");
+    }
+  };
+
   return (
     <footer className="bg-[#1e3a34] text-gray-300 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -95,20 +137,29 @@ export default function Footer() {
           <p className="text-sm text-gray-400 mb-4">
             Subscribe for clinic updates, new treatments, and health tips.
           </p>
-          <form className="flex flex-col sm:flex-row items-center gap-3">
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center gap-3">
             <input
               type="email"
               placeholder="Your email address"
               className="w-full px-4 py-2 rounded-md bg-gray-800 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#34d399]"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={status === "loading"}
             />
             <button
               type="submit"
-              className="px-5 py-2 rounded-md bg-[#34d399] text-gray-900 font-medium hover:bg-[#2bb983] transition"
+              className="px-5 py-2 rounded-md bg-[#34d399] text-gray-900 font-medium hover:bg-[#2bb983] transition disabled:opacity-70"
+              disabled={status === "loading"}
             >
-              Subscribe
+              {status === "loading" ? "Subscribing..." : "Subscribe"}
             </button>
           </form>
+          {message && (
+            <p className={`mt-2 text-sm ${status === "success" ? "text-green-400" : "text-red-400"}`}>
+              {message}
+            </p>
+          )}
         </div>
       </div>
 
