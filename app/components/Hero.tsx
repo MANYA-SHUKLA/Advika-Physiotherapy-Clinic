@@ -4,14 +4,21 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Typewriter from "typewriter-effect";
 import Image from "next/image";
+import { useRouter } from "next/navigation"; // Import the router
 
 export default function Hero() {
   const [isVisible, setIsVisible] = useState(false);
+  const router = useRouter(); // Initialize the router
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 200);
     return () => clearTimeout(timer);
   }, []);
+
+  // Function to handle booking button click
+  const handleBookAppointment = () => {
+    router.push("/booking"); // Navigate to the booking page
+  };
 
   return (
     <section className="relative h-screen flex items-center justify-start text-white px-6 overflow-hidden">
@@ -74,7 +81,10 @@ export default function Hero() {
           animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
           transition={{ duration: 1, ease: "easeOut", delay: 0.6 }}
         >
-          <button className="mt-8 bg-gradient-to-r from-[#16a34a] to-[#0c332d] text-white px-10 py-4 rounded-full font-semibold shadow-lg hover:shadow-2xl hover:scale-105 transition transform duration-300">
+          <button 
+            onClick={handleBookAppointment} // Add click handler
+            className="mt-8 bg-gradient-to-r from-[#16a34a] to-[#0c332d] text-white px-10 py-4 rounded-full font-semibold shadow-lg hover:shadow-2xl hover:scale-105 transition transform duration-300"
+          >
             Book Appointment
           </button>
         </motion.div>
