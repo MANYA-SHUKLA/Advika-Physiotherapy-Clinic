@@ -8,7 +8,7 @@ export default function Footer() {
   const [message, setMessage] = useState("");
 
   const openWhatsApp = () => {
-    const phoneNumber = "917381019858";
+    const phoneNumber = "918005586588";
     const message = "Hello, I would like to book an appointment or get more information about your services.";
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
