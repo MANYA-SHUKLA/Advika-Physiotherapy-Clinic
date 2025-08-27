@@ -25,7 +25,6 @@ export default function BookingPage() {
   };
 
   const sendToWhatsApp = (data: typeof formData) => {
-  
     const message = `New Booking Request:%0A%0A
 *Service*: ${data.service}%0A
 *Date*: ${data.date}%0A
@@ -36,20 +35,16 @@ export default function BookingPage() {
 *Additional Notes*: ${data.notes || 'None'}`;
 
     const whatsappUrl = `https://wa.me/918005586588?text=${message}`;
-    
-
     window.open(whatsappUrl, '_blank');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
-     
       sendToWhatsApp(formData);
-      
-     
+
       const response = await fetch('/api/booking/send-booking', {
         method: 'POST',
         headers: {
@@ -57,7 +52,7 @@ export default function BookingPage() {
         },
         body: JSON.stringify(formData),
       });
-      
+
       if (response.ok) {
         setShowNotif(true);
         setFormData({
@@ -73,7 +68,6 @@ export default function BookingPage() {
           setShowNotif(false);
         }, 4000);
       } else {
-       
         setShowNotif(true);
         setTimeout(() => {
           setShowNotif(false);
@@ -81,7 +75,6 @@ export default function BookingPage() {
       }
     } catch (error) {
       console.error('Error:', error);
-    
       setShowNotif(true);
       setTimeout(() => {
         setShowNotif(false);
@@ -136,7 +129,7 @@ export default function BookingPage() {
                 <label className="block text-sm font-medium text-gray-800 mb-2">
                   Select Service <span className="text-red-500">*</span>
                 </label>
-                <select 
+                <select
                   name="service"
                   value={formData.service}
                   onChange={handleChange}
@@ -180,7 +173,7 @@ export default function BookingPage() {
                     required
                   />
                 </div>
-              </div>            
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -267,7 +260,7 @@ export default function BookingPage() {
             </form>
           </div>
         </div>
-        
+
         <div className="mt-12 bg-white rounded-2xl p-6 shadow-lg border border-teal-100">
           <h3 className="text-xl font-semibold text-[#0c332d] mb-4 flex items-center gap-2">
             <MessageCircle className="text-green-500" size={24} />
@@ -275,7 +268,7 @@ export default function BookingPage() {
           </h3>
           <ol className="list-decimal pl-5 space-y-2 text-gray-700">
             <li>Fill out the form above with your appointment details</li>
-            <li>Click the "Send via WhatsApp" button</li>
+            <li>Click the &quot;Send via WhatsApp&quot; button</li>
             <li>WhatsApp will open with a pre-filled message containing your booking details</li>
             <li>Review the message and click the send button</li>
             <li>Our team will confirm your appointment shortly</li>
