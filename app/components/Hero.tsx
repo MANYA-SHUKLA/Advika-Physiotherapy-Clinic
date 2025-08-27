@@ -4,25 +4,23 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Typewriter from "typewriter-effect";
 import Image from "next/image";
-import { useRouter } from "next/navigation"; // Import the router
+import { useRouter } from "next/navigation"; 
 
 export default function Hero() {
   const [isVisible, setIsVisible] = useState(false);
-  const router = useRouter(); // Initialize the router
+  const router = useRouter(); 
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 200);
     return () => clearTimeout(timer);
   }, []);
 
-  // Function to handle booking button click
   const handleBookAppointment = () => {
-    router.push("/booking"); // Navigate to the booking page
+    router.push("/booking");
   };
 
   return (
     <section className="relative h-screen flex items-center justify-start text-white px-6 overflow-hidden">
-      {/* ✅ Background Image */}
       <Image
         src="/hero.jpg"
         alt="Physiotherapy clinic background"
@@ -30,13 +28,10 @@ export default function Hero() {
         priority
         className="absolute inset-0 object-cover -z-10"
       />
-
-      {/* ✅ Subtle Overlay Gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/50 to-transparent -z-10"></div>
 
-      {/* ✅ Content */}
       <div className="relative z-10 text-left max-w-4xl pl-6 md:pl-20 -mt-16">
-        {/* Heading */}
+    
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 30 }}
@@ -53,8 +48,6 @@ export default function Hero() {
             </span>
           </h1>
         </motion.div>
-
-        {/* ✅ Typewriter Tagline */}
         <motion.div
           className="mt-4 text-lg md:text-2xl text-gray-100 drop-shadow-md"
           initial={{ opacity: 0, y: 20 }}
@@ -75,14 +68,14 @@ export default function Hero() {
           />
         </motion.div>
 
-        {/* ✅ CTA Button */}
+   
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 20 }}
           transition={{ duration: 1, ease: "easeOut", delay: 0.6 }}
         >
           <button 
-            onClick={handleBookAppointment} // Add click handler
+            onClick={handleBookAppointment} 
             className="mt-8 bg-gradient-to-r from-[#16a34a] to-[#0c332d] text-white px-10 py-4 rounded-full font-semibold shadow-lg hover:shadow-2xl hover:scale-105 transition transform duration-300"
           >
             Book Appointment
@@ -90,7 +83,7 @@ export default function Hero() {
         </motion.div>
       </div>
 
-      {/* ✅ Floating Animated Elements (Trust Badges) */}
+   
       <motion.div
         className="absolute top-20 right-10 bg-white/20 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/30 shadow-xl"
         initial={{ opacity: 0, y: -20 }}
