@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, User, Phone, Mail, CheckCircle } from "lucide-react";
+import { Calendar, Clock, User, Phone, Mail, CheckCircle, MessageCircle } from "lucide-react";
 
 export default function BookingPage() {
   const [showNotif, setShowNotif] = useState(false);
@@ -24,10 +24,32 @@ export default function BookingPage() {
     }));
   };
 
+  const sendToWhatsApp = (data: typeof formData) => {
+  
+    const message = `New Booking Request:%0A%0A
+*Service*: ${data.service}%0A
+*Date*: ${data.date}%0A
+*Time*: ${data.time}%0A
+*Name*: ${data.name}%0A
+*Phone*: ${data.phone}%0A
+*Email*: ${data.email}%0A
+*Additional Notes*: ${data.notes || 'None'}`;
+
+    const whatsappUrl = `https://wa.me/918005586588?text=${message}`;
+    
+
+    window.open(whatsappUrl, '_blank');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
     try {
+     
+      sendToWhatsApp(formData);
+      
+     
       const response = await fetch('/api/booking/send-booking', {
         method: 'POST',
         headers: {
@@ -35,6 +57,7 @@ export default function BookingPage() {
         },
         body: JSON.stringify(formData),
       });
+      
       if (response.ok) {
         setShowNotif(true);
         setFormData({
@@ -50,11 +73,19 @@ export default function BookingPage() {
           setShowNotif(false);
         }, 4000);
       } else {
-        alert('Failed to send booking request. Please try again.');
+       
+        setShowNotif(true);
+        setTimeout(() => {
+          setShowNotif(false);
+        }, 4000);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to send booking request. Please try again.');
+    
+      setShowNotif(true);
+      setTimeout(() => {
+        setShowNotif(false);
+      }, 4000);
     } finally {
       setIsSubmitting(false);
     }
@@ -218,16 +249,37 @@ export default function BookingPage() {
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-gradient-to-r from-[#0c332d] to-[#147a6c] text-white text-lg px-6 py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-[#0c332d] to-[#147a6c] text-white text-lg px-6 py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {isSubmitting ? 'Processing...' : 'Confirm Booking'}
+                  {isSubmitting ? (
+                    'Processing...'
+                  ) : (
+                    <>
+                      <MessageCircle size={20} />
+                      Send via WhatsApp
+                    </>
+                  )}
                 </motion.button>
                 <p className="text-sm text-gray-500 mt-3 text-center">
-                  You will receive a confirmation email/SMS after submission.
+                  Your booking details will open in WhatsApp. Please click send to confirm.
                 </p>
               </div>
             </form>
           </div>
+        </div>
+        
+        <div className="mt-12 bg-white rounded-2xl p-6 shadow-lg border border-teal-100">
+          <h3 className="text-xl font-semibold text-[#0c332d] mb-4 flex items-center gap-2">
+            <MessageCircle className="text-green-500" size={24} />
+            How WhatsApp Booking Works
+          </h3>
+          <ol className="list-decimal pl-5 space-y-2 text-gray-700">
+            <li>Fill out the form above with your appointment details</li>
+            <li>Click the "Send via WhatsApp" button</li>
+            <li>WhatsApp will open with a pre-filled message containing your booking details</li>
+            <li>Review the message and click the send button</li>
+            <li>Our team will confirm your appointment shortly</li>
+          </ol>
         </div>
       </section>
 
