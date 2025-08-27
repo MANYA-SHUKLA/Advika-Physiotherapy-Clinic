@@ -48,7 +48,6 @@ export default function Footer() {
     <footer className="bg-[#1e3a34] text-gray-300 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-4 gap-12">
         
-        {/* Logo + Mission + Map */}
         <div>
           <h2 className="text-2xl font-bold text-white mb-3">Advika Clinic</h2>
           <p className="text-sm text-gray-400 mb-4 leading-relaxed">
@@ -67,7 +66,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Quick Links */}
         <div>
           <h3 className="text-lg font-semibold text-white mb-4">Quick Links</h3>
           <ul className="space-y-2 text-sm">
@@ -92,7 +90,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Contact Info */}
+       
         <div>
           <h3 className="text-lg font-semibold text-white mb-4">Contact</h3>
           <ul className="space-y-3 text-sm">
@@ -117,7 +115,7 @@ export default function Footer() {
             </li>
           </ul>
 
-          {/* Socials */}
+         
           <div className="flex gap-4 mt-5">
             <a href="" aria-label="Facebook" className="hover:text-white">
               <Facebook className="w-5 h-5" />
@@ -131,7 +129,7 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Newsletter */}
+     
         <div>
           <h3 className="text-lg font-semibold text-white mb-4">Stay Informed</h3>
           <p className="text-sm text-gray-400 mb-4">
@@ -163,7 +161,7 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Bottom Bar */}
+     
       <div className="mt-12 border-t border-gray-700 pt-6 text-center text-xs text-gray-500">
         <p>
           © {new Date().getFullYear()} Advika Physiotherapy Clinic. All rights reserved. |{" "}
