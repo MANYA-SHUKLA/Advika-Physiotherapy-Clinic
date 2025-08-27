@@ -1,17 +1,21 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import Image from "next/image";
+
 type Message = {
   id: string;
   text: string;
   sender: 'user' | 'bot';
   timestamp: Date;
 };
+
 const QUICK_REPLIES = [
   "What services do you offer?",
   "How do I book an appointment?",
   "What are your prices?",
   "Tell me about your team"
 ];
+
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -51,7 +55,6 @@ export default function Chatbot() {
   }, [messages, isTyping]);
 
   useEffect(() => {
-    // Set a timeout to clear the typing effect after user stops typing
     const timer = setTimeout(() => {
       setIsUserTyping(false);
     }, 1000);
@@ -72,7 +75,7 @@ export default function Chatbot() {
     if (lowerCaseMessage.includes('service') || lowerCaseMessage.includes('offer')) {
       return "We offer physiotherapy services for conditions like arthritis, paralysis, stroke rehabilitation, joint pain, and post-operative care. You can explore our services page for more details.";
     } else if (lowerCaseMessage.includes('book') || lowerCaseMessage.includes('appointment')) {
-      return "You can book an appointment through our booking page. We'll need some basic information and your preferred date/time.";
+      return "You can book an appointment through our booking page. We&apos;ll need some basic information and your preferred date/time.";
     } else if (lowerCaseMessage.includes('price') || lowerCaseMessage.includes('cost')) {
       return "Our pricing varies based on the type of treatment and session duration. Please check our pricing page for detailed information.";
     } else if (lowerCaseMessage.includes('team') || lowerCaseMessage.includes('doctor')) {
@@ -80,14 +83,13 @@ export default function Chatbot() {
     } else if (lowerCaseMessage.includes('hello') || lowerCaseMessage.includes('hi')) {
       return "Hello! How can I help you today?";
     } else {
-      return "I'm here to assist with information about our physiotherapy services. You can ask about our services, booking, pricing, or team.";
+      return "I&apos;m here to assist with information about our physiotherapy services. You can ask about our services, booking, pricing, or team.";
     }
   };
 
   const handleSendMessage = () => {
     if (inputText.trim() === '') return;
 
-    
     const userMessage: Message = {
       id: Date.now().toString(),
       text: inputText,
@@ -143,11 +145,9 @@ export default function Chatbot() {
           aria-label="Open chat"
         >
           <div className="w-8 h-8 relative">
-           
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
               <path d="M4.798 3a3.75 3.75 0 00-3.75 3.75v7.5a3.75 3.75 0 003.75 3.75h2.25v3a.75.75 0 001.28.53l3.75-3.75h5.471a3.75 3.75 0 003.75-3.75v-7.5A3.75 3.75 0 0019.202 3H4.798z" />
             </svg>
-          
             <span className="absolute -top-1 -right-1 flex h-3 w-3">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
@@ -161,11 +161,12 @@ export default function Chatbot() {
           
           <div className="bg-green-800 text-white p-3 rounded-t-lg flex items-center justify-between">
             <div className="flex items-center space-x-2">
-             
-              <img 
+              <Image 
                 src="https://cdn-icons-png.flaticon.com/512/4711/4711986.png" 
                 alt="Chatbot Avatar" 
-                className="w-8 h-8 rounded-full"
+                className="rounded-full"
+                width={32}
+                height={32}
               />
               <div>
                 <h3 className="font-semibold">Physio Assistant</h3>
@@ -196,7 +197,7 @@ export default function Chatbot() {
           <div className="flex-1 p-3 overflow-y-auto bg-green-50">
             {messages.length === 0 ? (
               <div className="text-center text-gray-500 my-8">
-                <p>Hello! I'm here to help with your physiotherapy questions.</p>
+                <p>Hello! I&apos;m here to help with your physiotherapy questions.</p>
               </div>
             ) : (
               messages.map((message) => (
@@ -220,7 +221,6 @@ export default function Chatbot() {
               ))
             )}
             
-        
             {isTyping && (
               <div className="flex justify-start mb-3">
                 <div className="bg-white text-gray-800 p-3 rounded-lg rounded-bl-none border border-green-200">
@@ -253,7 +253,6 @@ export default function Chatbot() {
             </div>
           )}
 
-          
           <div className="p-3 border-t border-green-200 bg-white rounded-b-lg">
             <div className="flex space-x-2">
               <input

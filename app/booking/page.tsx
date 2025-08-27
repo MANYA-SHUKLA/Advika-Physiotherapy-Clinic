@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Clock, User, Phone, Mail, CheckCircle } from "lucide-react";
+
 export default function BookingPage() {
   const [showNotif, setShowNotif] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -14,6 +15,7 @@ export default function BookingPage() {
     email: "",
     notes: ""
   });
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -21,6 +23,7 @@ export default function BookingPage() {
       [name]: value
     }));
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -56,6 +59,7 @@ export default function BookingPage() {
       setIsSubmitting(false);
     }
   };
+
   return (
     <main className="pt-20 bg-gradient-to-br from-[#f8fdfc] via-[#f0f9f7] to-[#e6f7f3] min-h-screen">
       <section className="bg-gradient-to-r from-[#d0f6ed] to-[#ffffff] py-20 text-center shadow-inner">
@@ -80,10 +84,11 @@ export default function BookingPage() {
           <span className="font-semibold text-[#0c332d]">
             Advika Physiotherapy Clinic
           </span>
-          . Select your service, choose a time, and we'll confirm your
+          . Select your service, choose a time, and we&apos;ll confirm your
           appointment instantly.
         </motion.p>
       </section>
+
       <section className="max-w-4xl mx-auto px-6 md:px-12 py-16">
         <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-[#ffffff] to-[#ebfef9] border border-teal-100">
           <div className="bg-[#0c332d] text-white text-center py-6">
@@ -114,6 +119,7 @@ export default function BookingPage() {
                   <option>Physiotherapy Consultation</option>
                 </select>
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
@@ -144,6 +150,7 @@ export default function BookingPage() {
                   />
                 </div>
               </div>            
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
@@ -176,6 +183,7 @@ export default function BookingPage() {
                   />
                 </div>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
                   <Mail size={16} /> Email Address
@@ -189,6 +197,7 @@ export default function BookingPage() {
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition shadow-sm text-gray-800"
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-2">
                   Additional Notes
@@ -202,6 +211,7 @@ export default function BookingPage() {
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition shadow-sm text-gray-800"
                 ></textarea>
               </div>
+
               <div className="pt-4">
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -220,6 +230,7 @@ export default function BookingPage() {
           </div>
         </div>
       </section>
+
       <AnimatePresence>
         {showNotif && (
           <motion.div
@@ -233,7 +244,7 @@ export default function BookingPage() {
             <div>
               <p className="font-semibold text-gray-800">Booking Received</p>
               <p className="text-sm text-gray-600">
-                We've successfully received your appointment request.
+                We&apos;ve successfully received your appointment request.
               </p>
             </div>
           </motion.div>
