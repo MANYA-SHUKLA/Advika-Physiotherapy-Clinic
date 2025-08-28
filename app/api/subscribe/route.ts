@@ -12,7 +12,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -20,20 +19,17 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Create email transporter
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: process.env.EMAIL_USER || 'your-email@gmail.com',
+        pass: process.env.EMAIL_PASS || 'your-app-password',
       },
     });
 
-    // Email content
     const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_TO, // Changed from NOTIFICATION_EMAIL to EMAIL_TO
+      from: process.env.EMAIL_USER || 'your-email@gmail.com',
+      to: process.env.EMAIL_TO || 'swati6213@gmail.com',
       subject: 'New Newsletter Subscription - Advika Clinic',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -48,7 +44,7 @@ export async function POST(request: NextRequest) {
       `,
     };
 
-    // Send email
+   
     await transporter.sendMail(mailOptions);
 
     return NextResponse.json(
