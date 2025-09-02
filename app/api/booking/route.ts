@@ -19,12 +19,15 @@ export async function POST(request: NextRequest) {
 
     // Check for double booking
     const isAlreadyBooked = bookings.some(
-      booking => booking.date === date && booking.time === time
+      (booking) => booking.date === date && booking.time === time
     );
 
     if (isAlreadyBooked) {
       return NextResponse.json(
-        { error: 'This time slot is already booked. Please choose another time.' },
+        {
+          error:
+            'This time slot is already booked. Please choose another time.',
+        },
         { status: 409 }
       );
     }
@@ -36,7 +39,8 @@ export async function POST(request: NextRequest) {
     const userMailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Appointment Booking Confirmation - Advika Physiotherapy Clinic',
+      subject:
+        'Appointment Booking Confirmation - Advika Physiotherapy Clinic',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #0c332d;">Appointment Booking Confirmation</h2>
@@ -51,7 +55,9 @@ export async function POST(request: NextRequest) {
           </ul>
           ${notes ? `<p><strong>Additional Notes:</strong> ${notes}</p>` : ''}
           <p>We will contact you if there are any changes to your appointment.</p>
-          <p>If you need to reschedule or have any questions, please contact us at ${process.env.CLINIC_PHONE || '+91 XXXXX XXXXX'}.</p>
+          <p>If you need to reschedule or have any questions, please contact us at ${
+            process.env.CLINIC_PHONE || '+91 XXXXX XXXXX'
+          }.</p>
           <br>
           <p>Best regards,<br>Advika Physiotherapy Clinic Team</p>
         </div>
@@ -84,13 +90,16 @@ export async function POST(request: NextRequest) {
     // Send both emails
     await Promise.all([
       transporter.sendMail(userMailOptions),
-      transporter.sendMail(clinicMailOptions)
+      transporter.sendMail(clinicMailOptions),
     ]);
 
-    return NextResponse.json({ 
-      message: 'Booking created successfully. Confirmation email has been sent.' 
-    }, { status: 200 });
-    
+    return NextResponse.json(
+      {
+        message:
+          'Booking created successfully. Confirmation email has been sent.',
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Error processing booking:', error);
     return NextResponse.json(
