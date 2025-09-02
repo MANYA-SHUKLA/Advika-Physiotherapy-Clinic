@@ -304,7 +304,7 @@ export default function BookingPage() {
             <div>
               <p className="font-semibold text-gray-800">Booking Received</p>
               <p className="text-sm text-gray-600">
-                We&apos;ve successfully received your appointment request.
+                We&apos;ve successfully received your appointment request. Confirmation email has been sent.
               </p>
             </div>
           </motion.div>
