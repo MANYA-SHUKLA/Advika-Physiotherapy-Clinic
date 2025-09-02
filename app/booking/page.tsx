@@ -34,6 +34,14 @@ export default function BookingPage() {
     setIsSubmitting(true);
     setError("");
 
+    // Basic client-side validation
+    if (!formData.service || !formData.date || !formData.time || 
+        !formData.name || !formData.phone || !formData.email) {
+      setError("Please fill in all required fields");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const response = await fetch('/api/booking', {
         method: 'POST',
