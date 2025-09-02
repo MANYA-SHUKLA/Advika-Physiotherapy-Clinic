@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { dbConnect, Booking } from '../../../lib/mongoose'; // Adjust the path as needed
+import clientPromise from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
 
-// Helper function to create a transporter for sending emails
+interface Booking {
+  _id?: ObjectId;
+  service: string;
+  date: string;
+  time: string;
+  name: string;
+  phone: string;
+  email: string;
+  notes?: string;
+  bookedAt: Date;
+}
+
+// Create a transporter for sending emails
 const createTransporter = () => {
   try {
     return nodemailer.createTransport({
@@ -20,8 +33,6 @@ const createTransporter = () => {
 
 export async function POST(request: NextRequest) {
   try {
-    await dbConnect(); // Connect to the database
-
     const { service, date, time, name, phone, email, notes } = await request.json();
 
     // Validate required fields
@@ -32,10 +43,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for double booking using the database
-    const isAlreadyBooked = await Booking.findOne({ service, date, time });
+    // Connect to MongoDB
+    const client = await clientPromise;
+    const db = client.db(); // Default database from connection string
 
-    if (isAlreadyBooked) {
+    // Check for double booking (same service, date, and time)
+    const existingBooking = await db
+      .collection('bookings')
+      .findOne({ service, date, time });
+
+    if (existingBooking) {
       return NextResponse.json(
         {
           error: 'This service is already booked at the selected date and time. Please choose another time or service.',
@@ -44,8 +61,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create a new booking object
-    const bookingData = {
+    // Create booking object
+    const bookingData: Booking = {
       service,
       date,
       time,
@@ -53,12 +70,25 @@ export async function POST(request: NextRequest) {
       phone,
       email,
       notes: notes || '',
+      bookedAt: new Date()
     };
 
-    // Save the new booking to the database
-    const newBooking = await Booking.create(bookingData);
+    // Save to MongoDB
+    const result = await db
+      .collection('bookings')
+      .insertOne(bookingData);
 
-    // Send confirmation emails
+    if (!result.acknowledged) {
+      console.error('Failed to save booking to database');
+      return NextResponse.json(
+        { error: 'Failed to save booking. Please try again.' },
+        { status: 500 }
+      );
+    }
+
+    console.log('Booking saved successfully with ID:', result.insertedId);
+
+    // Send confirmation email to user
     const transporter = createTransporter();
     
     if (transporter && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
@@ -78,7 +108,7 @@ export async function POST(request: NextRequest) {
                 <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
                 <li><strong>Time:</strong> ${time}</li>
                 <li><strong>Phone:</strong> ${phone}</li>
-                <li><strong>Reference ID:</strong> ${newBooking._id}</li>
+                <li><strong>Reference ID:</strong> ${result.insertedId.toString()}</li>
               </ul>
               ${notes ? `<p><strong>Additional Notes:</strong> ${notes}</p>` : ''}
               <p>We will contact you if there are any changes to your appointment.</p>
@@ -91,6 +121,7 @@ export async function POST(request: NextRequest) {
           `,
         };
 
+        // Send notification email to clinic
         const clinicMailOptions = {
           from: `"Advika Physiotherapy Clinic" <${process.env.EMAIL_USER}>`,
           to: process.env.EMAIL_TO,
@@ -106,7 +137,7 @@ export async function POST(request: NextRequest) {
                 <li><strong>Service:</strong> ${service}</li>
                 <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
                 <li><strong>Time:</strong> ${time}</li>
-                <li><strong>Reference ID:</strong> ${newBooking._id}</li>
+                <li><strong>Reference ID:</strong> ${result.insertedId.toString()}</li>
               </ul>
               ${notes ? `<p><strong>Additional Notes:</strong> ${notes}</p>` : ''}
               <p>Booking received at: ${new Date().toLocaleString()}</p>
@@ -122,6 +153,7 @@ export async function POST(request: NextRequest) {
         console.log('Confirmation emails sent successfully');
       } catch (emailError) {
         console.error('Error sending email:', emailError);
+        // Don't fail the request if email fails
       }
     } else {
       console.warn('Email not configured, skipping email notification');
@@ -130,7 +162,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: 'Booking created successfully. Confirmation email has been sent.',
-        bookingId: newBooking._id
+        bookingId: result.insertedId
       },
       { status: 200 }
     );
@@ -143,11 +175,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Optional: Add a GET endpoint to check bookings for debugging
+// Add a GET endpoint to check bookings (for debugging)
 export async function GET() {
   try {
-    await dbConnect();
-    const bookings = await Booking.find({});
+    const client = await clientPromise;
+    const db = client.db();
+    const bookings = await db
+      .collection('bookings')
+      .find({})
+      .sort({ bookedAt: -1 })
+      .toArray();
+    
     return NextResponse.json(
       { bookings, count: bookings.length },
       { status: 200 }
