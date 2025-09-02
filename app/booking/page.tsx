@@ -25,7 +25,6 @@ export default function BookingPage() {
       [name]: value
     }));
     
-    // Clear error when user starts typing
     if (error) setError("");
   };
 
@@ -34,7 +33,7 @@ export default function BookingPage() {
     setIsSubmitting(true);
     setError("");
 
-    // Basic client-side validation
+  
     if (!formData.service || !formData.date || !formData.time || 
         !formData.name || !formData.phone || !formData.email) {
       setError("Please fill in all required fields");
@@ -69,7 +68,7 @@ export default function BookingPage() {
         }, 4000);
       } else {
         if (response.status === 409) {
-          // Show the slot booked popup for double booking error
+         
           setShowSlotBookedPopup(true);
         } else {
           setError(result.error || "Failed to book appointment. Please try again.");
@@ -83,7 +82,6 @@ export default function BookingPage() {
     }
   };
 
-  // Generate time slots for the time input
   const generateTimeSlots = () => {
     const slots = [];
     for (let hour = 9; hour <= 17; hour++) {
@@ -325,7 +323,7 @@ export default function BookingPage() {
         )}
       </AnimatePresence>
 
-      {/* Slot Already Booked Popup */}
+     
       <AnimatePresence>
         {showSlotBookedPopup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

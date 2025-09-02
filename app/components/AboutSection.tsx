@@ -18,14 +18,14 @@ export default function AboutSection() {
   return (
     <section className="bg-[#f8f7f5] py-20">
       <div className="max-w-7xl mx-auto px-6 md:px-12 grid md:grid-cols-2 items-stretch gap-12">
-        {/* Left Content */}
+       
         <div className="flex flex-col justify-between">
           <div>
             <p className="uppercase text-sm tracking-widest text-[#6d7a5d] mb-4">
               Physiotherapy
             </p>
 
-            {/* Animated Heading */}
+           
             <motion.h2
               className="text-4xl md:text-6xl font-libertinus text-green-700 mb-6 leading-tight"
               initial={{ opacity: 0, y: 30 }}
@@ -43,7 +43,7 @@ export default function AboutSection() {
             </p>
           </div>
 
-          {/* Bottom Image with overlay */}
+         
           <div className="relative w-full h-[250px] md:h-[300px] rounded overflow-hidden shadow-lg group">
             <Image
               src="/about-2.webp"
@@ -51,12 +51,11 @@ export default function AboutSection() {
               fill
               className="object-cover"
             />
-            {/* Shadow overlay */}
+           
             <div className="absolute inset-0 bg-black/30 transition-opacity duration-300 group-hover:opacity-0"></div>
           </div>
         </div>
 
-        {/* Right Image with overlay */}
         <div className="relative w-full h-[500px] rounded overflow-hidden shadow-lg group">
           <Image
             src="/about-1.avif"
