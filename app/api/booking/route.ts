@@ -1,56 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import fs from 'fs';
-import path from 'path';
+import { dbConnect, Booking } from '../../../lib/mongoose'; // Adjust the path as needed
 
-// Helper functions to read/write bookings with better error handling
-const getBookings = () => {
-  try {
-    const filePath = path.join(process.cwd(), 'data', 'bookings.json');
-    
-    // Create directory if it doesn't exist
-    const dir = path.dirname(filePath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    
-    // Create file if it doesn't exist
-    if (!fs.existsSync(filePath)) {
-      fs.writeFileSync(filePath, JSON.stringify([]));
-      return [];
-    }
-    
-    const data = fs.readFileSync(filePath, 'utf8');
-    
-    // Check if file is empty
-    if (!data.trim()) {
-      return [];
-    }
-    
-    return JSON.parse(data);
-  } catch (error) {
-    console.error('Error reading bookings:', error);
-    return [];
-  }
-};
-
-const saveBooking = (newBooking: any) => {
-  try {
-    const bookings = getBookings();
-    bookings.push(newBooking);
-    
-    const filePath = path.join(process.cwd(), 'data', 'bookings.json');
-    fs.writeFileSync(filePath, JSON.stringify(bookings, null, 2));
-    
-    console.log('Booking saved successfully:', newBooking.id);
-    return true;
-  } catch (error) {
-    console.error('Error saving booking:', error);
-    return false;
-  }
-};
-
-// Create a transporter for sending emails
+// Helper function to create a transporter for sending emails
 const createTransporter = () => {
   try {
     return nodemailer.createTransport({
@@ -68,6 +20,8 @@ const createTransporter = () => {
 
 export async function POST(request: NextRequest) {
   try {
+    await dbConnect(); // Connect to the database
+
     const { service, date, time, name, phone, email, notes } = await request.json();
 
     // Validate required fields
@@ -78,14 +32,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check for double booking (same service, date, and time)
-    const bookings = getBookings();
-    const isAlreadyBooked = bookings.some(
-      (booking: any) => 
-        booking.service === service && 
-        booking.date === date && 
-        booking.time === time
-    );
+    // Check for double booking using the database
+    const isAlreadyBooked = await Booking.findOne({ service, date, time });
 
     if (isAlreadyBooked) {
       return NextResponse.json(
@@ -96,9 +44,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create booking object with unique ID
+    // Create a new booking object
     const bookingData = {
-      id: Date.now().toString(),
       service,
       date,
       time,
@@ -106,20 +53,12 @@ export async function POST(request: NextRequest) {
       phone,
       email,
       notes: notes || '',
-      bookedAt: new Date().toISOString()
     };
 
-    // Save to JSON file
-    const saveResult = saveBooking(bookingData);
-    if (!saveResult) {
-      console.error('Failed to save booking to file');
-      return NextResponse.json(
-        { error: 'Failed to save booking. Please try again.' },
-        { status: 500 }
-      );
-    }
+    // Save the new booking to the database
+    const newBooking = await Booking.create(bookingData);
 
-    // Send confirmation email to user
+    // Send confirmation emails
     const transporter = createTransporter();
     
     if (transporter && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
@@ -139,7 +78,7 @@ export async function POST(request: NextRequest) {
                 <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
                 <li><strong>Time:</strong> ${time}</li>
                 <li><strong>Phone:</strong> ${phone}</li>
-                <li><strong>Reference ID:</strong> ${bookingData.id}</li>
+                <li><strong>Reference ID:</strong> ${newBooking._id}</li>
               </ul>
               ${notes ? `<p><strong>Additional Notes:</strong> ${notes}</p>` : ''}
               <p>We will contact you if there are any changes to your appointment.</p>
@@ -152,7 +91,6 @@ export async function POST(request: NextRequest) {
           `,
         };
 
-        // Send notification email to clinic
         const clinicMailOptions = {
           from: `"Advika Physiotherapy Clinic" <${process.env.EMAIL_USER}>`,
           to: process.env.EMAIL_TO,
@@ -168,7 +106,7 @@ export async function POST(request: NextRequest) {
                 <li><strong>Service:</strong> ${service}</li>
                 <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
                 <li><strong>Time:</strong> ${time}</li>
-                <li><strong>Reference ID:</strong> ${bookingData.id}</li>
+                <li><strong>Reference ID:</strong> ${newBooking._id}</li>
               </ul>
               ${notes ? `<p><strong>Additional Notes:</strong> ${notes}</p>` : ''}
               <p>Booking received at: ${new Date().toLocaleString()}</p>
@@ -184,7 +122,6 @@ export async function POST(request: NextRequest) {
         console.log('Confirmation emails sent successfully');
       } catch (emailError) {
         console.error('Error sending email:', emailError);
-        // Don't fail the request if email fails
       }
     } else {
       console.warn('Email not configured, skipping email notification');
@@ -193,7 +130,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message: 'Booking created successfully. Confirmation email has been sent.',
-        bookingId: bookingData.id
+        bookingId: newBooking._id
       },
       { status: 200 }
     );
@@ -206,10 +143,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Add a GET endpoint to check bookings (for debugging)
+// Optional: Add a GET endpoint to check bookings for debugging
 export async function GET() {
   try {
-    const bookings = getBookings();
+    await dbConnect();
+    const bookings = await Booking.find({});
     return NextResponse.json(
       { bookings, count: bookings.length },
       { status: 200 }
