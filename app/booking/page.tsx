@@ -113,6 +113,9 @@ export default function BookingPage() {
     return slots;
   };
 
+  const todayIST = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
+  const minDate = todayIST.getFullYear() + '-' + String(todayIST.getMonth() + 1).padStart(2, '0') + '-' + String(todayIST.getDate()).padStart(2, '0');
+  
   const timeSlots = generateTimeSlots();
 
   return (
@@ -193,7 +196,7 @@ export default function BookingPage() {
                     name="date"
                     value={formData.date}
                     onChange={handleChange}
-                    min={new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })).toISOString().split('T')[0]}
+                    min={minDate}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition shadow-sm text-gray-800 custom-date-input"
                     required
                   />
@@ -345,55 +348,30 @@ export default function BookingPage() {
 
       <AnimatePresence>
         {showSlotBookedPopup && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative"
-            >
+          <motion.div
+            initial={{ opacity: 0, x: 50, scale: 0.9 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 50, scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+            className="fixed top-6 right-6 max-w-sm w-full p-4 bg-red-50 border-l-4 border-red-500 text-red-800 shadow-lg rounded-lg z-50"
+          >
+            <div className="flex items-start gap-3">
+              <AlertCircle className="flex-shrink-0 mt-0.5" size={20} />
+              <div className="flex-grow">
+                <h3 className="font-bold text-base">Booking Conflict</h3>
+                <p className="text-sm mt-1">
+                  The selected slot is already booked. Please choose another date or time.
+                </p>
+              </div>
               <button
                 onClick={() => setShowSlotBookedPopup(false)}
-                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+                className="text-red-500 hover:text-red-700 transition"
+                aria-label="Close"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
-              
-              <div className="flex items-center justify-center mb-4">
-                <div className="bg-red-100 p-3 rounded-full">
-                  <AlertCircle className="text-red-500" size={32} />
-                </div>
-              </div>
-              
-              <h3 className="text-xl font-bold text-center text-gray-900 mb-2">
-                Slot Already Booked
-              </h3>
-              
-              <p className="text-gray-600 text-center mb-6">
-                The selected time slot for {formData.service} on {formData.date} at {formData.time} is already booked. Please choose another time or service.
-              </p>
-              
-              <div className="flex flex-col gap-3">
-                <button
-                  onClick={() => setShowSlotBookedPopup(false)}
-                  className="w-full bg-gradient-to-r from-[#0c332d] to-[#147a6c] text-white py-3 rounded-lg font-medium hover:opacity-90 transition"
-                >
-                  Choose Different Time
-                </button>
-                
-                <button
-                  onClick={() => {
-                    setFormData(prev => ({ ...prev, service: "", date: "", time: "" }));
-                    setShowSlotBookedPopup(false);
-                  }}
-                  className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition"
-                >
-                  Choose Different Service
-                </button>
-              </div>
-            </motion.div>
-          </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </main>
