@@ -33,6 +33,15 @@ export default function BookingPage() {
     setIsSubmitting(true);
     setError("");
 
+    // Client-side validation for past dates/times
+    const now = new Date();
+    const selectedDateTime = new Date(`${formData.date}T${formData.time}:00`);
+
+    if (selectedDateTime < now) {
+      setError("You cannot book an appointment for a time that has already passed. Please choose a future date and time.");
+      setIsSubmitting(false);
+      return;
+    }
   
     if (!formData.service || !formData.date || !formData.time || 
         !formData.name || !formData.phone || !formData.email) {
@@ -68,7 +77,6 @@ export default function BookingPage() {
         }, 4000);
       } else {
         if (response.status === 409) {
-         
           setShowSlotBookedPopup(true);
         } else {
           setError(result.error || "Failed to book appointment. Please try again.");
@@ -84,10 +92,15 @@ export default function BookingPage() {
 
   const generateTimeSlots = () => {
     const slots = [];
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+
     for (let hour = 9; hour <= 17; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        slots.push(timeString);
+        const slotDateTime = new Date(`${formData.date}T${timeString}:00`);
+        const isPast = formData.date === today && slotDateTime < now;
+        slots.push({ time: timeString, disabled: isPast });
       }
     }
     return slots;
@@ -174,7 +187,7 @@ export default function BookingPage() {
                     value={formData.date}
                     onChange={handleChange}
                     min={new Date().toISOString().split('T')[0]}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition shadow-sm text-gray-800"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition shadow-sm text-gray-800 custom-date-input"
                     required
                   />
                 </div>
@@ -191,9 +204,9 @@ export default function BookingPage() {
                     required
                   >
                     <option value="">-- Select a Time --</option>
-                    {timeSlots.map((time) => (
-                      <option key={time} value={time}>
-                        {time}
+                    {timeSlots.map((slot) => (
+                      <option key={slot.time} value={slot.time} disabled={slot.disabled}>
+                        {slot.time} {slot.disabled && '(Past)'}
                       </option>
                     ))}
                   </select>
@@ -323,7 +336,6 @@ export default function BookingPage() {
         )}
       </AnimatePresence>
 
-     
       <AnimatePresence>
         {showSlotBookedPopup && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
