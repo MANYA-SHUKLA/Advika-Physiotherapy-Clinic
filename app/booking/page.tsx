@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, User, Phone, Mail, CheckCircle, AlertCircle } from "lucide-react";
+import { Calendar, Clock, User, Phone, Mail, CheckCircle, AlertCircle, X } from "lucide-react";
 
 export default function BookingPage() {
   const [showNotif, setShowNotif] = useState(false);
+  const [showSlotBookedPopup, setShowSlotBookedPopup] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
@@ -59,7 +60,12 @@ export default function BookingPage() {
           setShowNotif(false);
         }, 4000);
       } else {
-        setError(result.error || "Failed to book appointment. Please try again.");
+        if (response.status === 409) {
+          // Show the slot booked popup for double booking error
+          setShowSlotBookedPopup(true);
+        } else {
+          setError(result.error || "Failed to book appointment. Please try again.");
+        }
       }
     } catch (error) {
       console.error('Error:', error);
@@ -308,6 +314,61 @@ export default function BookingPage() {
               </p>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Slot Already Booked Popup */}
+      <AnimatePresence>
+        {showSlotBookedPopup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
+              className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 relative"
+            >
+              <button
+                onClick={() => setShowSlotBookedPopup(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+              >
+                <X size={24} />
+              </button>
+              
+              <div className="flex items-center justify-center mb-4">
+                <div className="bg-red-100 p-3 rounded-full">
+                  <AlertCircle className="text-red-500" size={32} />
+                </div>
+              </div>
+              
+              <h3 className="text-xl font-bold text-center text-gray-900 mb-2">
+                Slot Already Booked
+              </h3>
+              
+              <p className="text-gray-600 text-center mb-6">
+                The selected time slot for {formData.service} on {formData.date} at {formData.time} is already booked. Please choose another time or service.
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => setShowSlotBookedPopup(false)}
+                  className="w-full bg-gradient-to-r from-[#0c332d] to-[#147a6c] text-white py-3 rounded-lg font-medium hover:opacity-90 transition"
+                >
+                  Choose Different Time
+                </button>
+                
+                <button
+                  onClick={() => {
+                    setFormData(prev => ({ ...prev, service: "", date: "", time: "" }));
+                    setShowSlotBookedPopup(false);
+                  }}
+                  className="w-full border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition"
+                >
+                  Choose Different Service
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </main>
