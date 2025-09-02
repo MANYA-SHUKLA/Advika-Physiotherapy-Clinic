@@ -1,11 +1,12 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Clock, User, Phone, Mail, CheckCircle, MessageCircle } from "lucide-react";
+import { Calendar, Clock, User, Phone, Mail, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function BookingPage() {
   const [showNotif, setShowNotif] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     service: "",
     date: "",
@@ -22,36 +23,26 @@ export default function BookingPage() {
       ...prev,
       [name]: value
     }));
-  };
-
-  const sendToWhatsApp = (data: typeof formData) => {
-    const message = `New Booking Request:%0A%0A
-*Service*: ${data.service}%0A
-*Date*: ${data.date}%0A
-*Time*: ${data.time}%0A
-*Name*: ${data.name}%0A
-*Phone*: ${data.phone}%0A
-*Email*: ${data.email}%0A
-*Additional Notes*: ${data.notes || 'None'}`;
-
-    const whatsappUrl = `https://wa.me/918005586588?text=${message}`;
-    window.open(whatsappUrl, '_blank');
+    
+    // Clear error when user starts typing
+    if (error) setError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError("");
 
     try {
-      sendToWhatsApp(formData);
-
-      const response = await fetch('/api/booking/send-booking', {
+      const response = await fetch('/api/booking', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       });
+
+      const result = await response.json();
 
       if (response.ok) {
         setShowNotif(true);
@@ -68,21 +59,29 @@ export default function BookingPage() {
           setShowNotif(false);
         }, 4000);
       } else {
-        setShowNotif(true);
-        setTimeout(() => {
-          setShowNotif(false);
-        }, 4000);
+        setError(result.error || "Failed to book appointment. Please try again.");
       }
     } catch (error) {
       console.error('Error:', error);
-      setShowNotif(true);
-      setTimeout(() => {
-        setShowNotif(false);
-      }, 4000);
+      setError("Network error. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  // Generate time slots for the time input
+  const generateTimeSlots = () => {
+    const slots = [];
+    for (let hour = 9; hour <= 17; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        slots.push(timeString);
+      }
+    }
+    return slots;
+  };
+
+  const timeSlots = generateTimeSlots();
 
   return (
     <main className="pt-20 bg-gradient-to-br from-[#f8fdfc] via-[#f0f9f7] to-[#e6f7f3] min-h-screen">
@@ -109,7 +108,7 @@ export default function BookingPage() {
             Advika Physiotherapy Clinic
           </span>
           . Select your service, choose a time, and we&apos;ll confirm your
-          appointment instantly.
+          appointment via email.
         </motion.p>
       </section>
 
@@ -124,6 +123,13 @@ export default function BookingPage() {
             </p>
           </div>
           <div className="relative p-10">
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-3">
+                <AlertCircle className="text-red-500" size={20} />
+                <p className="text-red-700">{error}</p>
+              </div>
+            )}
+            
             <form className="space-y-8" onSubmit={handleSubmit}>
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-2">
@@ -137,10 +143,10 @@ export default function BookingPage() {
                   required
                 >
                   <option value="">-- Choose a Service --</option>
-                  <option>Post-surgery Recovery</option>
-                  <option>Chronic Pain Relief</option>
-                  <option>Sports Injury Rehab</option>
-                  <option>Physiotherapy Consultation</option>
+                  <option value="Post-surgery Recovery">Post-surgery Recovery</option>
+                  <option value="Chronic Pain Relief">Chronic Pain Relief</option>
+                  <option value="Sports Injury Rehab">Sports Injury Rehab</option>
+                  <option value="Physiotherapy Consultation">Physiotherapy Consultation</option>
                 </select>
               </div>
 
@@ -155,6 +161,7 @@ export default function BookingPage() {
                     name="date"
                     value={formData.date}
                     onChange={handleChange}
+                    min={new Date().toISOString().split('T')[0]}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition shadow-sm text-gray-800"
                     required
                   />
@@ -164,14 +171,20 @@ export default function BookingPage() {
                     <Clock size={16} /> Preferred Time{" "}
                     <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="time"
+                  <select
                     name="time"
                     value={formData.time}
                     onChange={handleChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition shadow-sm text-gray-800"
                     required
-                  />
+                  >
+                    <option value="">-- Select a Time --</option>
+                    {timeSlots.map((time) => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -210,7 +223,8 @@ export default function BookingPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-800 mb-2 flex items-center gap-2">
-                  <Mail size={16} /> Email Address
+                  <Mail size={16} /> Email Address{" "}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -219,6 +233,7 @@ export default function BookingPage() {
                   onChange={handleChange}
                   placeholder="you@example.com"
                   className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition shadow-sm text-gray-800"
+                  required
                 />
               </div>
 
@@ -248,13 +263,13 @@ export default function BookingPage() {
                     'Processing...'
                   ) : (
                     <>
-                      <MessageCircle size={20} />
-                      Send via WhatsApp
+                      <CheckCircle size={20} />
+                      Book Appointment
                     </>
                   )}
                 </motion.button>
                 <p className="text-sm text-gray-500 mt-3 text-center">
-                  Your booking details will open in WhatsApp. Please click send to confirm.
+                  Your booking details will be sent directly to our team. We'll confirm your appointment via email.
                 </p>
               </div>
             </form>
@@ -263,15 +278,15 @@ export default function BookingPage() {
 
         <div className="mt-12 bg-white rounded-2xl p-6 shadow-lg border border-teal-100">
           <h3 className="text-xl font-semibold text-[#0c332d] mb-4 flex items-center gap-2">
-            <MessageCircle className="text-green-500" size={24} />
-            How WhatsApp Booking Works
+            <CheckCircle className="text-green-500" size={24} />
+            How Booking Works
           </h3>
           <ol className="list-decimal pl-5 space-y-2 text-gray-700">
             <li>Fill out the form above with your appointment details</li>
-            <li>Click the &quot;Send via WhatsApp&quot; button</li>
-            <li>WhatsApp will open with a pre-filled message containing your booking details</li>
-            <li>Review the message and click the send button</li>
-            <li>Our team will confirm your appointment shortly</li>
+            <li>Click the "Book Appointment" button</li>
+            <li>Your booking details will be sent directly to our team</li>
+            <li>We'll contact you shortly to confirm your appointment via email</li>
+            <li>If the selected time slot is already booked, we'll suggest alternative times</li>
           </ol>
         </div>
       </section>
