@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     if (transporter && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       try {
         const userMailOptions = {
-          from: process.env.EMAIL_USER,
+          from: `"Advika Physiotherapy Clinic" <${process.env.EMAIL_USER}>`,
           to: email,
           subject: 'Appointment Booking Confirmation - Advika Physiotherapy Clinic',
           html: `
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
               <h3 style="color: #0c332d;">Appointment Details:</h3>
               <ul>
                 <li><strong>Service:</strong> ${service}</li>
-                <li><strong>Date:</strong> ${date}</li>
+                <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
                 <li><strong>Time:</strong> ${time}</li>
                 <li><strong>Phone:</strong> ${phone}</li>
                 <li><strong>Reference ID:</strong> ${bookingData.id}</li>
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
 
         // Send notification email to clinic
         const clinicMailOptions = {
-          from: process.env.EMAIL_USER,
+          from: `"Advika Physiotherapy Clinic" <${process.env.EMAIL_USER}>`,
           to: process.env.EMAIL_TO,
           subject: 'New Appointment Booking - Advika Physiotherapy Clinic',
           html: `
@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
                 <li><strong>Email:</strong> ${email}</li>
                 <li><strong>Phone:</strong> ${phone}</li>
                 <li><strong>Service:</strong> ${service}</li>
-                <li><strong>Date:</strong> ${date}</li>
+                <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
                 <li><strong>Time:</strong> ${time}</li>
                 <li><strong>Reference ID:</strong> ${bookingData.id}</li>
               </ul>
