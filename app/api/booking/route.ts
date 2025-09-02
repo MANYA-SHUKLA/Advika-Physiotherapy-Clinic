@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
 // Simple in-memory storage for demo purposes
-const bookings: { date: string; time: string }[] = [];
+const bookings: { service: string; date: string; time: string }[] = [];
 
 // Create a transporter for sending emails
 const transporter = nodemailer.createTransport({
@@ -17,23 +17,26 @@ export async function POST(request: NextRequest) {
   try {
     const { service, date, time, name, phone, email, notes } = await request.json();
 
-    // Check for double booking
+    // Check for double booking (same service, date, and time)
     const isAlreadyBooked = bookings.some(
-      (booking) => booking.date === date && booking.time === time
+      (booking) => 
+        booking.service === service && 
+        booking.date === date && 
+        booking.time === time
     );
 
     if (isAlreadyBooked) {
       return NextResponse.json(
         {
           error:
-            'This time slot is already booked. Please choose another time.',
+            'This service is already booked at the selected date and time. Please choose another time or service.',
         },
         { status: 409 }
       );
     }
 
     // Add to bookings
-    bookings.push({ date, time });
+    bookings.push({ service, date, time });
 
     // Send confirmation email to user
     const userMailOptions = {
