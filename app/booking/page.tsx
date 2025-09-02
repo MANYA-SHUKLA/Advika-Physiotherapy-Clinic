@@ -269,7 +269,7 @@ export default function BookingPage() {
                   )}
                 </motion.button>
                 <p className="text-sm text-gray-500 mt-3 text-center">
-                  Your booking details will be sent directly to our team. We'll confirm your appointment via email.
+                  Your booking details will be sent directly to our team. We&apos;ll confirm your appointment via email.
                 </p>
               </div>
             </form>
@@ -283,10 +283,10 @@ export default function BookingPage() {
           </h3>
           <ol className="list-decimal pl-5 space-y-2 text-gray-700">
             <li>Fill out the form above with your appointment details</li>
-            <li>Click the "Book Appointment" button</li>
+            <li>Click the &quot;Book Appointment&quot; button</li>
             <li>Your booking details will be sent directly to our team</li>
-            <li>We'll contact you shortly to confirm your appointment via email</li>
-            <li>If the selected time slot is already booked, we'll suggest alternative times</li>
+            <li>We&apos;ll contact you shortly to confirm your appointment via email</li>
+            <li>If the selected time slot is already booked, we&apos;ll suggest alternative times</li>
           </ol>
         </div>
       </section>
