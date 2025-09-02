@@ -15,7 +15,7 @@ interface Booking {
   bookedAt: Date;
 }
 
-// Create a transporter for sending emails
+
 const createTransporter = () => {
   try {
     return nodemailer.createTransport({
@@ -35,7 +35,6 @@ export async function POST(request: NextRequest) {
   try {
     const { service, date, time, name, phone, email, notes } = await request.json();
 
-    // Validate required fields
     if (!service || !date || !time || !name || !phone || !email) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -43,11 +42,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Connect to MongoDB
     const client = await clientPromise;
-    const db = client.db(); // Default database from connection string
+    const db = client.db(); 
 
-    // Check for double booking (same service, date, and time)
     const existingBooking = await db
       .collection('bookings')
       .findOne({ service, date, time });
@@ -61,7 +58,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create booking object
+
     const bookingData: Booking = {
       service,
       date,
@@ -73,7 +70,6 @@ export async function POST(request: NextRequest) {
       bookedAt: new Date()
     };
 
-    // Save to MongoDB
     const result = await db
       .collection('bookings')
       .insertOne(bookingData);
@@ -88,7 +84,6 @@ export async function POST(request: NextRequest) {
 
     console.log('Booking saved successfully with ID:', result.insertedId);
 
-    // Send confirmation email to user
     const transporter = createTransporter();
     
     if (transporter && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
@@ -121,7 +116,6 @@ export async function POST(request: NextRequest) {
           `,
         };
 
-        // Send notification email to clinic
         const clinicMailOptions = {
           from: `"Advika Physiotherapy Clinic" <${process.env.EMAIL_USER}>`,
           to: process.env.EMAIL_TO,
@@ -153,7 +147,7 @@ export async function POST(request: NextRequest) {
         console.log('Confirmation emails sent successfully');
       } catch (emailError) {
         console.error('Error sending email:', emailError);
-        // Don't fail the request if email fails
+        
       }
     } else {
       console.warn('Email not configured, skipping email notification');
@@ -175,7 +169,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Add a GET endpoint to check bookings (for debugging)
 export async function GET() {
   try {
     const client = await clientPromise;
