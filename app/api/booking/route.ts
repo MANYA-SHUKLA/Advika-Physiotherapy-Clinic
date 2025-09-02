@@ -3,14 +3,30 @@ import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
 
-// Helper functions to read/write bookings
+// Helper functions to read/write bookings with better error handling
 const getBookings = () => {
   try {
-    const filePath = path.join(process.cwd(), 'bookings.json');
+    const filePath = path.join(process.cwd(), 'data', 'bookings.json');
+    
+    // Create directory if it doesn't exist
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    
+    // Create file if it doesn't exist
     if (!fs.existsSync(filePath)) {
+      fs.writeFileSync(filePath, JSON.stringify([]));
       return [];
     }
+    
     const data = fs.readFileSync(filePath, 'utf8');
+    
+    // Check if file is empty
+    if (!data.trim()) {
+      return [];
+    }
+    
     return JSON.parse(data);
   } catch (error) {
     console.error('Error reading bookings:', error);
@@ -22,8 +38,11 @@ const saveBooking = (newBooking: any) => {
   try {
     const bookings = getBookings();
     bookings.push(newBooking);
-    const filePath = path.join(process.cwd(), 'bookings.json');
+    
+    const filePath = path.join(process.cwd(), 'data', 'bookings.json');
     fs.writeFileSync(filePath, JSON.stringify(bookings, null, 2));
+    
+    console.log('Booking saved successfully:', newBooking.id);
     return true;
   } catch (error) {
     console.error('Error saving booking:', error);
@@ -31,23 +50,20 @@ const saveBooking = (newBooking: any) => {
   }
 };
 
-// Email configuration - validate environment variables
-const getEmailTransporter = () => {
-  const emailUser = process.env.EMAIL_USER;
-  const emailPass = process.env.EMAIL_PASS;
-  
-  if (!emailUser || !emailPass) {
-    console.error('Email credentials not configured');
+// Create a transporter for sending emails
+const createTransporter = () => {
+  try {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+  } catch (error) {
+    console.error('Error creating email transporter:', error);
     return null;
   }
-  
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: emailUser,
-      pass: emailPass,
-    },
-  });
 };
 
 export async function POST(request: NextRequest) {
@@ -58,15 +74,6 @@ export async function POST(request: NextRequest) {
     if (!service || !date || !time || !name || !phone || !email) {
       return NextResponse.json(
         { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email format' },
         { status: 400 }
       );
     }
@@ -89,9 +96,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create booking object
+    // Create booking object with unique ID
     const bookingData = {
-      id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+      id: Date.now().toString(),
       service,
       date,
       time,
@@ -105,17 +112,18 @@ export async function POST(request: NextRequest) {
     // Save to JSON file
     const saveResult = saveBooking(bookingData);
     if (!saveResult) {
+      console.error('Failed to save booking to file');
       return NextResponse.json(
         { error: 'Failed to save booking. Please try again.' },
         { status: 500 }
       );
     }
 
-    // Send emails if configured
-    const transporter = getEmailTransporter();
-    if (transporter) {
+    // Send confirmation email to user
+    const transporter = createTransporter();
+    
+    if (transporter && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       try {
-        // Send confirmation email to user
         const userMailOptions = {
           from: process.env.EMAIL_USER,
           to: email,
@@ -128,9 +136,10 @@ export async function POST(request: NextRequest) {
               <h3 style="color: #0c332d;">Appointment Details:</h3>
               <ul>
                 <li><strong>Service:</strong> ${service}</li>
-                <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
+                <li><strong>Date:</strong> ${date}</li>
                 <li><strong>Time:</strong> ${time}</li>
                 <li><strong>Phone:</strong> ${phone}</li>
+                <li><strong>Reference ID:</strong> ${bookingData.id}</li>
               </ul>
               ${notes ? `<p><strong>Additional Notes:</strong> ${notes}</p>` : ''}
               <p>We will contact you if there are any changes to your appointment.</p>
@@ -157,12 +166,12 @@ export async function POST(request: NextRequest) {
                 <li><strong>Email:</strong> ${email}</li>
                 <li><strong>Phone:</strong> ${phone}</li>
                 <li><strong>Service:</strong> ${service}</li>
-                <li><strong>Date:</strong> ${new Date(date).toLocaleDateString()}</li>
+                <li><strong>Date:</strong> ${date}</li>
                 <li><strong>Time:</strong> ${time}</li>
                 <li><strong>Reference ID:</strong> ${bookingData.id}</li>
               </ul>
               ${notes ? `<p><strong>Additional Notes:</strong> ${notes}</p>` : ''}
-              <p>Booking received at: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
+              <p>Booking received at: ${new Date().toLocaleString()}</p>
             </div>
           `,
         };
@@ -171,17 +180,20 @@ export async function POST(request: NextRequest) {
           transporter.sendMail(userMailOptions),
           transporter.sendMail(clinicMailOptions),
         ]);
+        
+        console.log('Confirmation emails sent successfully');
       } catch (emailError) {
         console.error('Error sending email:', emailError);
         // Don't fail the request if email fails
       }
+    } else {
+      console.warn('Email not configured, skipping email notification');
     }
 
     return NextResponse.json(
       {
-        message: 'Booking created successfully.',
-        bookingId: bookingData.id,
-        ...(transporter ? { emailSent: true } : { emailSent: false })
+        message: 'Booking created successfully. Confirmation email has been sent.',
+        bookingId: bookingData.id
       },
       { status: 200 }
     );
@@ -189,6 +201,23 @@ export async function POST(request: NextRequest) {
     console.error('Error processing booking:', error);
     return NextResponse.json(
       { error: 'Failed to process booking. Please try again later.' },
+      { status: 500 }
+    );
+  }
+}
+
+// Add a GET endpoint to check bookings (for debugging)
+export async function GET() {
+  try {
+    const bookings = getBookings();
+    return NextResponse.json(
+      { bookings, count: bookings.length },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error retrieving bookings:', error);
+    return NextResponse.json(
+      { error: 'Failed to retrieve bookings' },
       { status: 500 }
     );
   }
