@@ -33,11 +33,14 @@ export default function BookingPage() {
     setIsSubmitting(true);
     setError("");
 
-    // Client-side validation for past dates/times
-    const now = new Date();
+    // Client-side validation for past dates/times using IST
+    const nowIST = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
     const selectedDateTime = new Date(`${formData.date}T${formData.time}:00`);
-
-    if (selectedDateTime < now) {
+    
+    // Adjust selectedDateTime to IST for accurate comparison
+    const selectedDateTimeIST = new Date(selectedDateTime.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+    
+    if (selectedDateTimeIST < nowIST) {
       setError("You cannot book an appointment for a time that has already passed. Please choose a future date and time.");
       setIsSubmitting(false);
       return;
@@ -92,14 +95,18 @@ export default function BookingPage() {
 
   const generateTimeSlots = () => {
     const slots = [];
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
+    const nowIST = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+    const todayIST = nowIST.toISOString().split('T')[0];
 
     for (let hour = 9; hour <= 17; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         const slotDateTime = new Date(`${formData.date}T${timeString}:00`);
-        const isPast = formData.date === today && slotDateTime < now;
+        
+        // Adjust selectedDateTime to IST for accurate comparison
+        const slotDateTimeIST = new Date(slotDateTime.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+        
+        const isPast = formData.date === todayIST && slotDateTimeIST < nowIST;
         slots.push({ time: timeString, disabled: isPast });
       }
     }
@@ -186,7 +193,7 @@ export default function BookingPage() {
                     name="date"
                     value={formData.date}
                     onChange={handleChange}
-                    min={new Date().toISOString().split('T')[0]}
+                    min={new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Kolkata" })).toISOString().split('T')[0]}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 transition shadow-sm text-gray-800 custom-date-input"
                     required
                   />

@@ -50,3 +50,16 @@ body {
 .animate-fade-in-up {
   animation: fade-in-up 0.5s ease-out;
 }
+
+.custom-date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(1);
+  background-color: #0c332d;
+  border-radius: 5px;
+  padding: 5px;
+  margin-right: 5px;
+}
+
+.custom-date-input::-webkit-calendar-picker-indicator:hover {
+  background-color: #147a6c;
+}
