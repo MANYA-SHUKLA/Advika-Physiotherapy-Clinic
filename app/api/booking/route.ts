@@ -14,8 +14,6 @@ interface Booking {
   notes?: string;
   bookedAt: Date;
 }
-
-
 const createTransporter = () => {
   try {
     return nodemailer.createTransport({
